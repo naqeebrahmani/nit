@@ -202,7 +202,7 @@ void UnCompressAndCopyDirectory(std::string srcPath, std::string destPath){
                     continue;
                 }
                 else if(uncompress(destFileBuffer, &destFileBytes, srcFileBuffer, srcFileBytes) == Z_DATA_ERROR){
-                    std::cout << "Could not uncompress " << dirEntry.path().filename().string() << "\n"; 
+                    std::cout << "Could not uncompress. The compressed file might have been corrupted." << dirEntry.path().filename().string() << "\n"; 
                     continue;
                 }
                 else if(uncompress(destFileBuffer, &destFileBytes, srcFileBuffer, srcFileBytes) == Z_BUF_ERROR){
