@@ -27,8 +27,7 @@ void Init(){
 
         //time_t timeNow = time(nullptr); //time in seconds since 1st jan 1970
         //i didnt use ctime because it was showing up as deprecated
-        // After some research,I found out that chrono is the newer (c++ 20+ if i remember correct) thing for time related stuff
-
+        // After some research, I found out that chrono is the newer (c++ 20+ if i remember correct) thing for time related stuff
 
         std::chrono::zoned_time timeZone{std::chrono::current_zone(), std::chrono::system_clock::now()};
         std::string timeString = std::format("{:%F %X %Z}", timeZone);
@@ -218,7 +217,7 @@ void UnCompressAndCopyDirectory(std::string srcPath, std::string destPath){
         if(dirEntry.is_directory() && dirEntry.path().filename().string() != ".nit"){ 
             if(InArray(excludepaths, dirEntry.path().filename().string(), excludepathsnum)){
 
-                std::cout << dirEntry.path().filename().string() << " was not excluded when this save was created.\nDo you want to replace the contents of this directory as well? (Y/n)";
+                std::cout << dirEntry.path().filename().string() << " was not excluded when this save was created, but it is now.\nDo you want to replace the contents of this directory as well? (Y/n)";
                 std::cin >> tempvar;
                 replaceexcluded = tempvar == "Y" ? true : false;
 
@@ -244,7 +243,7 @@ void UnCompressAndCopyDirectory(std::string srcPath, std::string destPath){
         else{
 
             if(InArray(excludepaths, dirEntry.path().filename().string(), excludepathsnum)){
-                std::cout << dirEntry.path().filename().string() << " was not excluded when this save was created.\nDo you want to replace the contents of this file as well? (Y/n)";
+                std::cout << dirEntry.path().filename().string() << " was not excluded when this save was created, but it is now.\nDo you want to replace the contents of this file as well? (Y/n)";
                 std::cin >> tempvar;
                 replaceexcluded = tempvar == "Y" ? true : false;
                 
