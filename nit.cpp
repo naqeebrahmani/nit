@@ -1,4 +1,3 @@
-#include "zconf.h"
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
@@ -8,9 +7,9 @@
 #include <fstream>
 #include <string>
 
-extern "C"{
-    #include <zlib.h>
-}
+#include <zlib.h>
+#include "zconf.h"
+
 
 
 std::string commands[] = {"init", "save", "replace x (x is the save number)", "preview x (x is the save number)", "log", "help"};
