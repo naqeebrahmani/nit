@@ -39,4 +39,4 @@ So far, the application is Windows only, mostly because it is my main operating 
 ## Building the project
 To be able to compile the source code you would need to have the compiled Zlib library with the corresponding headers on your device. You would also need to have a C++ compiler, as well as CMake and a build system if you're planning on using CMake.
 <br>
-Once you have these dependencies, you should be able to just change the Zlib path and include directories path in the CMakeLists.txt and be able to build, given that you're using CMake, otherwise you would need to configure the project yourself.
+Once you have these dependencies, you should be able to just change the Zlib and include directories path in the CMakeLists.txt and be able to build, given that you're using CMake, otherwise you would need to configure the project yourself.
