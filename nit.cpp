@@ -174,64 +174,194 @@ void CompressAndCopyDirectory(std::string srcPath, std::string destPath){
 
 void UnCompressAndCopyDirectory(std::string srcPath, std::string destPath){
 
+    //reading the exclude.nit file if it is there
+
+    int excludepathsnum = 0;
+    std::string* excludepaths = new std::string[excludepathsnum];
+
+    if(std::filesystem::exists("exclude.nit")){
+
+        std::ifstream excludefile("exclude.nit");
+    
+        std::string tempexcludepath{};
+
+        while(std::getline(excludefile, tempexcludepath)){
+
+            std::string* tempexcludepaths = new std::string[excludepathsnum];
+
+            CopyArray(excludepaths, tempexcludepaths, excludepathsnum);
+
+            delete[] excludepaths;
+
+            excludepathsnum++;
+            excludepaths = new std::string[excludepathsnum];
+
+            CopyArray(tempexcludepaths, excludepaths, excludepathsnum - 1);
+
+            delete[] tempexcludepaths;
+
+            excludepaths[excludepathsnum - 1] = tempexcludepath;
+
+        }
+
+        excludefile.close();
+
+    }
+
+    //////////////////////////////
+
+    std::string tempvar{};
+    bool replaceexcluded{};
+
     for(std::filesystem::directory_entry const &dirEntry : std::filesystem::directory_iterator(srcPath)){
 
 
         if(dirEntry.is_directory() && dirEntry.path().filename().string() != ".nit"){ 
-            std::filesystem::create_directory(destPath + "/" + dirEntry.path().filename().string());
-            UnCompressAndCopyDirectory(srcPath + "/" + dirEntry.path().filename().string(), destPath + "/" + dirEntry.path().filename().string());
+            if(InArray(excludepaths, dirEntry.path().filename().string(), excludepathsnum)){
+
+                std::cout << dirEntry.path().filename().string() << " was not excluded when this save was created.\nDo you want to replace the contents of this directory as well? (Y/n)";
+                std::cin >> tempvar;
+                replaceexcluded = tempvar == "Y" ? true : false;
+
+                if(replaceexcluded){
+
+                    std::filesystem::create_directory(destPath + "/" + dirEntry.path().filename().string());
+                    UnCompressAndCopyDirectory(srcPath + "/" + dirEntry.path().filename().string(), destPath + "/" + dirEntry.path().filename().string());
+            
+                }
+                else{
+                    std::cout << "not replacing " << dirEntry.path().filename().string() << "\n";
+                }
+
+            }
+            else{
+
+                std::filesystem::create_directory(destPath + "/" + dirEntry.path().filename().string());
+                UnCompressAndCopyDirectory(srcPath + "/" + dirEntry.path().filename().string(), destPath + "/" + dirEntry.path().filename().string());
+            
+            }
+
         }
         else{
 
-            std::ifstream srcFile(dirEntry.path(), std::ifstream::binary);
+            if(InArray(excludepaths, dirEntry.path().filename().string(), excludepathsnum)){
+                std::cout << dirEntry.path().filename().string() << " was not excluded when this save was created.\nDo you want to replace the contents of this file as well? (Y/n)";
+                std::cin >> tempvar;
+                replaceexcluded = tempvar == "Y" ? true : false;
+                
+                if(replaceexcluded){
 
-            int srcFileBytes = std::filesystem::file_size(dirEntry.path());
-            unsigned char* srcFileBuffer = new unsigned char[srcFileBytes];
+                    std::ifstream srcFile(dirEntry.path(), std::ifstream::binary);
 
-            srcFile.read(reinterpret_cast<char*>(srcFileBuffer), srcFileBytes);
-            srcFile.close();
+                    int srcFileBytes = std::filesystem::file_size(dirEntry.path());
+                    unsigned char* srcFileBuffer = new unsigned char[srcFileBytes];
+
+                    srcFile.read(reinterpret_cast<char*>(srcFileBuffer), srcFileBytes);
+                    srcFile.close();
 
 
-            uLong destFileBytes = srcFileBytes * 100;
-            unsigned char* destFileBuffer = new unsigned char[destFileBytes];
-            
-            if(uncompress(destFileBuffer, &destFileBytes, srcFileBuffer, srcFileBytes) < 0){
-
-                if(uncompress(destFileBuffer, &destFileBytes, srcFileBuffer, srcFileBytes) == Z_MEM_ERROR){
-                    std::cout << "Not enough memory for uncompressing " << dirEntry.path().filename().string() << "\n";
-                    continue;
-                }
-                else if(uncompress(destFileBuffer, &destFileBytes, srcFileBuffer, srcFileBytes) == Z_DATA_ERROR){
-                    std::cout << "Could not uncompress. The compressed file might have been corrupted." << dirEntry.path().filename().string() << "\n"; 
-                    continue;
-                }
-                else if(uncompress(destFileBuffer, &destFileBytes, srcFileBuffer, srcFileBytes) == Z_BUF_ERROR){
-
-                    while(uncompress(destFileBuffer, &destFileBytes, srcFileBuffer, srcFileBytes) == Z_BUF_ERROR){
+                    uLong destFileBytes = srcFileBytes * 100;
+                    unsigned char* destFileBuffer = new unsigned char[destFileBytes];
                     
-                        delete[] destFileBuffer;
+                    if(uncompress(destFileBuffer, &destFileBytes, srcFileBuffer, srcFileBytes) < 0){
 
-                        destFileBytes *= 2;
-                        destFileBuffer = new unsigned char[destFileBytes];
+                        if(uncompress(destFileBuffer, &destFileBytes, srcFileBuffer, srcFileBytes) == Z_MEM_ERROR){
+                            std::cout << "Not enough memory for uncompressing " << dirEntry.path().filename().string() << "\n";
+                            continue;
+                        }
+                        else if(uncompress(destFileBuffer, &destFileBytes, srcFileBuffer, srcFileBytes) == Z_DATA_ERROR){
+                            std::cout << "Could not uncompress. The compressed file might have been corrupted." << dirEntry.path().filename().string() << "\n"; 
+                            continue;
+                        }
+                        else if(uncompress(destFileBuffer, &destFileBytes, srcFileBuffer, srcFileBytes) == Z_BUF_ERROR){
+
+                            while(uncompress(destFileBuffer, &destFileBytes, srcFileBuffer, srcFileBytes) == Z_BUF_ERROR){
+                            
+                                delete[] destFileBuffer;
+
+                                destFileBytes *= 2;
+                                destFileBuffer = new unsigned char[destFileBytes];
+
+                            }
+
+                        }
+
 
                     }
 
+                    
+
+                    std::ofstream destFile(destPath + "/" + dirEntry.path().filename().string(), std::ofstream::binary);
+                    destFile.write(reinterpret_cast<char*>(destFileBuffer), destFileBytes);
+
+
+                    std::cout << "Uncompressed: " << dirEntry.path().filename().string() << "\n";
+
+
+                    delete[] srcFileBuffer;
+                    delete[] destFileBuffer;
+
+                }
+                else{
+                    std::cout << "not replacing " << dirEntry.path().filename().string() << "\n";
                 }
 
+            }
+            else{
+
+                std::ifstream srcFile(dirEntry.path(), std::ifstream::binary);
+
+                int srcFileBytes = std::filesystem::file_size(dirEntry.path());
+                unsigned char* srcFileBuffer = new unsigned char[srcFileBytes];
+
+                srcFile.read(reinterpret_cast<char*>(srcFileBuffer), srcFileBytes);
+                srcFile.close();
+
+
+                uLong destFileBytes = srcFileBytes * 100;
+                unsigned char* destFileBuffer = new unsigned char[destFileBytes];
+                
+                if(uncompress(destFileBuffer, &destFileBytes, srcFileBuffer, srcFileBytes) < 0){
+
+                    if(uncompress(destFileBuffer, &destFileBytes, srcFileBuffer, srcFileBytes) == Z_MEM_ERROR){
+                        std::cout << "Not enough memory for uncompressing " << dirEntry.path().filename().string() << "\n";
+                        continue;
+                    }
+                    else if(uncompress(destFileBuffer, &destFileBytes, srcFileBuffer, srcFileBytes) == Z_DATA_ERROR){
+                        std::cout << "Could not uncompress. The compressed file might have been corrupted." << dirEntry.path().filename().string() << "\n"; 
+                        continue;
+                    }
+                    else if(uncompress(destFileBuffer, &destFileBytes, srcFileBuffer, srcFileBytes) == Z_BUF_ERROR){
+
+                        while(uncompress(destFileBuffer, &destFileBytes, srcFileBuffer, srcFileBytes) == Z_BUF_ERROR){
+                        
+                            delete[] destFileBuffer;
+
+                            destFileBytes *= 2;
+                            destFileBuffer = new unsigned char[destFileBytes];
+
+                        }
+
+                    }
+
+
+                }
+
+                
+
+                std::ofstream destFile(destPath + "/" + dirEntry.path().filename().string(), std::ofstream::binary);
+                destFile.write(reinterpret_cast<char*>(destFileBuffer), destFileBytes);
+
+
+                std::cout << "Uncompressed: " << dirEntry.path().filename().string() << "\n";
+
+
+                delete[] srcFileBuffer;
+                delete[] destFileBuffer;
 
             }
 
-            
 
-            std::ofstream destFile(destPath + "/" + dirEntry.path().filename().string(), std::ofstream::binary);
-            destFile.write(reinterpret_cast<char*>(destFileBuffer), destFileBytes);
-
-
-            std::cout << "Uncompressed: " << dirEntry.path().filename().string() << "\n";
-
-
-            delete[] srcFileBuffer;
-            delete[] destFileBuffer;
 
 
         }
