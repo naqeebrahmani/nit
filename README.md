@@ -28,10 +28,15 @@ nit is an easy to use command line version controller made using C++ and the zli
 - **nit help**
      - Displays all available commands in the command prompt.
 
-## Installation Guide
+## Installation guide
 So far, the application is Windows only, mostly because it is my main operating system and because i barely have any experience with other operating systems i.e. Linux.
-### Installing and Set up
+### Installation and set up
 1. Clone the repository or download the zip file
 2. Navigate to the directory with the nit executable - "nit.exe"
 3. Add the directory as a path to your system's environment variables
    - Now, you should be able to use nit in any directory. You can type "nit help" in your command prompt to test.
+
+## Building the project
+To be able to compile the source code you would need to have the compiled Zlib library with the corresponding headers on your device. You would also need to have a C++ compiler, as well as CMake and a build system if you're planning on using CMake.
+<br>
+Once you have these dependencies, you should be able to just change the Zlib path and include directories path in the CMakeLists.txt and be able to build, given that you're using CMake, otherwise you would need to configure the project yourself.
