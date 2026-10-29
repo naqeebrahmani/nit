@@ -15,8 +15,7 @@ nit is an easy to use command line version controller made using C++ and the zli
        
 - **nit replace x (x = save number)**
      - Replaces the current directory with a specified save.
-     - It does not remove files/directories that are specified in the exclude.nit file. However, it can and will change the file(s) if the file(s) was/were not excluded in the save that you are replacing with.
-     - Recommended to save before replacing.
+     - When replacing with a save that contains a file or directory that is currently excluded, the program will ask whether you want to replace that file or directory.
        
 - **nit preview x (x = save number)**
      - Creates a preview directory inside the .nit directory where the specified save will be uncompressed and made available for preview.
